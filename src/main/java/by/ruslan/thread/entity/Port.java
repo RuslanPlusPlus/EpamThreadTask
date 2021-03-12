@@ -17,7 +17,7 @@ public class Port {
 
     private Queue<Berth> freeBerths = new LinkedList<>();
     private Queue<Berth> busyBerths = new LinkedList<>();
-    private final Lock lock = new ReentrantLock();
+    private final Lock lock = new ReentrantLock(true);
     private final Condition berthIsFree = lock.newCondition();
 
     public static Port getInstance() {
