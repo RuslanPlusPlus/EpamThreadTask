@@ -1,9 +1,9 @@
 package by.ruslan.thread.entity;
 
-public class Berth {
+public class ShipContainer {
     private Long id;
 
-    public Berth(long id){
+    public ShipContainer(Long id){
         this.id = id;
     }
 }

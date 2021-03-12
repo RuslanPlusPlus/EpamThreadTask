@@ -11,26 +11,27 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataReader {
     static final Logger logger = LogManager.getLogger();
 
-    public String readData(String fileName) throws ThreadException {
+    public List<String> readData(String fileName) throws ThreadException {
         if (fileName == null || fileName.isEmpty()){
             throw new ThreadException("Passed filename is null or empty");
         }
-        String text;
+        List<String> lines = new ArrayList<>();
         try {
             ClassLoader classLoader = getClass().getClassLoader();
             URI resource = classLoader.getResource(fileName).toURI();
             Path path = Paths.get(resource);
-            text = Files.lines(path, Charset.defaultCharset()).collect(Collectors.joining());
+            Files.lines(path, Charset.defaultCharset()).forEach(lines::add);
         } catch (IOException | URISyntaxException e) {
             logger.error("Failed to read file: " + fileName);
             throw new ThreadException("Failed to read file: " + fileName, e);
         }
         logger.info("File " + fileName + " is successfully read");
-        return text;
+        return lines;
     }
 }
