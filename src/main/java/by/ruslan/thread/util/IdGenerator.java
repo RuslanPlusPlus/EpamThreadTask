@@ -13,7 +13,7 @@ public class IdGenerator {
                 id = BERTH_ID_COUNTER++;
                 break;
             }
-            case PORT:{
+            case SHIP:{
                 id = SHIP_ID_COUNTER++;
                 break;
             }

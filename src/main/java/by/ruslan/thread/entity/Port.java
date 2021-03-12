@@ -2,11 +2,8 @@ package by.ruslan.thread.entity;
 
 import by.ruslan.thread.exception.ThreadException;
 import by.ruslan.thread.util.IdGenerator;
-import com.sun.jndi.ldap.Ber;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import java.util.ArrayDeque;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.locks.Condition;
