@@ -6,21 +6,31 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Port {
     static final Logger logger = LogManager.getLogger();
-    private static final int BERTH_CAPACITY = 5;
-    private static Port instance = new Port();
-
+    static final int BERTH_CAPACITY = 5;
+    private static Port instance;
+    private static AtomicBoolean portCreated = new AtomicBoolean();
     private Queue<Berth> freeBerths = new LinkedList<>();
     private Queue<Berth> busyBerths = new LinkedList<>();
-    private final Lock lock = new ReentrantLock(true);
-    private final Condition berthIsFree = lock.newCondition();
+    private static final Lock lock = new ReentrantLock(true);
+    private static final Lock berthLock = new ReentrantLock(true);
+    private final Condition berthIsFree = berthLock.newCondition();
 
     public static Port getInstance() {
+        if (!portCreated.get()){
+            lock.lock();
+            if (!portCreated.get()){
+                instance = new Port();
+                portCreated.set(true);
+            }
+            lock.unlock();
+        }
         return instance;
     }
 
@@ -29,8 +39,8 @@ public class Port {
     }
 
     public Berth getFreeBerth() throws ThreadException {
-        lock.lock();
         try {
+            berthLock.lock();
             while (freeBerths.isEmpty()){
                 berthIsFree.await();
             }
@@ -39,26 +49,26 @@ public class Port {
             return berth;
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
+            throw new ThreadException("Thread is interrupted", e);
         }finally {
-            lock.unlock();
+            berthLock.unlock();
         }
-        throw new ThreadException("Failed to give free berth");
     }
 
     public void leaveBerth(Berth berth) {
         try {
-            lock.lock();
+            berthLock.lock();
             freeBerths.offer(berth);
             busyBerths.remove();
-            berthIsFree.signalAll();
+            berthIsFree.signal();
         } finally {
-            lock.unlock();
+            berthLock.unlock();
         }
     }
 
     private void prepareBerths(){
         for (int i = 0; i < BERTH_CAPACITY; i++){
-            long id = IdGenerator.generateId(EntityType.BERTH);
+            long id = IdGenerator.generateBerthId();
             freeBerths.add(new Berth(id));
         }
     }
